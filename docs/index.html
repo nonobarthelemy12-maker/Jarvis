@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jarvis - Votre Assistant Intelligent</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav>
+        <div class="logo">JARVIS<span>.</span></div>
+        <ul class="nav-links">
+            <li><a href="#home" class="active">Accueil</a></li>
+            <li><a href="#features">Pouvoirs</a></li>
+            <li><a href="#guide">Installation</a></li>
+        </ul>
+        <a href="https://github.com/nonobarthelemy12-maker/Jarvis" class="btn-download-small">Télécharger</a>
+    </nav>
+
+    <main id="content">
+        <!-- Section Accueil -->
+        <section id="home" class="page active">
+            <div class="hero">
+                <div class="hero-text">
+                    <h1>L'Avenir est à votre <span>Ecoute</span></h1>
+                    <p>Jarvis est un assistant personnel intelligent qui fusionne la voix, la vision et le contrôle système pour une expérience Windows révolutionnaire.</p>
+                    <div class="hero-btns">
+                        <a href="#guide" class="btn-primary">Commencer l'Aventure</a>
+                        <a href="https://github.com/nonobarthelemy12-maker/Jarvis" class="btn-secondary">Voir sur GitHub</a>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="jarvis-core"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Fonctionnalités -->
+        <section id="features" class="page">
+            <h2 class="section-title">Ses <span>Pouvoirs</span></h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="icon">👁️</div>
+                    <h3>Vision Multimodale</h3>
+                    <p>Jarvis analyse votre écran en temps réel. Il peut expliquer un bug, traduire un texte ou résumer un document complexe d'un simple regard.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🎙️</div>
+                    <h3>Contrôle Vocal</h3>
+                    <p>Parlez naturellement. Jarvis comprend vos intentions et répond avec une voix claire et fluide, transformant votre PC en un véritable compagnon.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚙️</div>
+                    <h3>Maître du Système</h3>
+                    <p>Volume, luminosité, veille ou recherche de fichiers... Prenez le contrôle total de votre environnement Windows sans toucher au clavier.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Guide d'Installation -->
+        <section id="guide" class="page">
+            <h2 class="section-title">Mode <span>d'Emploi</span></h2>
+            <div class="guide-container">
+                <div class="step">
+                    <div class="step-num">01</div>
+                    <div class="step-content">
+                        <h3>Prérequis</h3>
+                        <p>Installez <strong>Node.js</strong> sur votre ordinateur. C'est le moteur qui permet à Jarvis de fonctionner.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">02</div>
+                    <div class="step-content">
+                        <h3>Le Cerveau</h3>
+                        <p>Obtenez votre clé API gratuite sur <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>. C'est ce qui donne son intelligence à Jarvis.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">03</div>
+                    <div class="step-content">
+                        <h3>Configuration</h3>
+                        <p>Créez un fichier <code>.env</code> dans le dossier <code>backend</code> et collez votre clé : <code>GEMINI_API_KEY=votre_cle</code>.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">04</div>
+                    <div class="step-content">
+                        <h3>Lancement</h3>
+                        <p>Lancez le backend et le client avec <code>npm start</code>. Appuyez sur <strong>Alt + J</strong> et dites "Bonjour Jarvis" !</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2026 Jarvis Project - Créé pour l'excellence.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
