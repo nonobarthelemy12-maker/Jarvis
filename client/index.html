@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: rgba(30, 30, 30, 0.9);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .container {
+            width: 90%;
+            text-align: center;
+        }
+
+        input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #00d2ff;
+            color: white;
+            font-size: 24px;
+            padding: 10px;
+            outline: none;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .status {
+            font-size: 14px;
+            color: #00d2ff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 5px;
+            min-height: 20px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .mic-btn {
+            background: transparent;
+            border: 2px solid #00d2ff;
+            color: #00d2ff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .mic-btn.listening {
+            background: #00d2ff;
+            color: white;
+            box-shadow: 0 0 15px #00d2ff;
+            animation: pulse 1.5s infinite;
+        }
+
+        .hint {
+            font-size: 10px;
+            color: #888;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <input type="text" id="command-input" placeholder="Comment puis-je vous aider ?" autofocus>
+        <div id="status-text" class="status">Jarvis est à votre écoute</div>
+        <div class="controls">
+            <button id="mic-btn" class="mic-btn">🎙️</button>
+            <div class="hint">Entrée pour envoyer | Echap pour fermer</div>
+        </div>
+    </div>
+
+    <script>
+        const { shell, ipcRenderer } = require('electron');
+        const input = document.getElementById('command-input');
+        const micBtn = document.getElementById('mic-btn');
+        const statusText = document.getElementById('status-text');
+        let isListening = false;
+
+        function speak(text) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'fr-FR';
+            utterance.rate = 1.1;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'fr-FR';
+            recognition.interimResults = false;
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                input.value = transcript;
+                processCommand(transcript);
+            };
+
+            recognition.onend = () => {
+                isListening = false;
+                micBtn.classList.remove('listening');
+            };
+
+            micBtn.addEventListener('click', () => {
+                if (!isListening) {
+                    recognition.start();
+                    isListening = true;
+                    micBtn.classList.add('listening');
+                    statusText.innerText = 'Je vous écoute...';
+                } else {
+                    recognition.stop();
+                }
+            });
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                ipcRenderer.send('hide-window');
+            }
+        });
+
+        async function processCommand(command) {
+            if (!command) return;
+
+            input.disabled = true;
+            statusText.innerText = 'Analyse en cours...';
+
+            try {
+                // Premier appel pour l'intention
+                const response = await fetch('http://localhost:3000/api/jarvis', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: command })
+                });
+                const data = await response.json();
+                let instruction = data.instruction;
+                
+                // GESTION DE LA VISION
+                if (instruction.action === 'capture_screen') {
+                    if (instruction.message) {
+                        statusText.innerText = instruction.message;
+                        speak(instruction.message);
+                    }
+                    
+                    // On cache la fenêtre pour la capture
+                    ipcRenderer.send('hide-window');
+                    
+                    // On attend un peu que la fenêtre disparaisse
+                    await new Promise(r => setTimeout(r, 400));
+                    
+                    // Appel à l'endpoint vision
+                    const visionResponse = await fetch('http://localhost:3000/api/jarvis/vision', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ command: command })
+                    });
+                    const visionData = await visionResponse.json();
+                    instruction = visionData.instruction;
+                    
+                    // On réaffiche la fenêtre
+                    ipcRenderer.send('show-window');
+                }
+
+                if (instruction.message) {
+                    statusText.innerText = instruction.message;
+                    speak(instruction.message);
+                }
+
+                // Actions classiques
+                if (instruction.action === 'open_url' && instruction.payload) {
+                    shell.openExternal(instruction.payload);
+                } else if (instruction.action === 'open_file' && instruction.payload) {
+                    shell.openPath(instruction.payload);
+                }
+
+                input.value = '';
+                
+                setTimeout(() => {
+                    if (statusText.innerText !== 'Erreur de connexion') {
+                        statusText.innerText = 'Jarvis est à votre écoute';
+                    }
+                    input.disabled = false;
+                    input.focus();
+                }, 5000);
+
+            } catch (error) {
+                statusText.innerText = 'Erreur de connexion';
+                input.disabled = false;
+                ipcRenderer.send('show-window');
+            }
+        }
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                processCommand(input.value);
+            }
+        });
+    </script>
+</body>
+</html>
